@@ -273,10 +273,61 @@ static void DescribeUnmanagedComponent(SDK::AActor* hitActor, SDK::UPrimitiveCom
 		meshName.c_str());
 }
 
-// Fired by the inspect keybind. Traces from the player's eyes and, if the hit
-// actor is a spawner container, identifies exactly which spawner component
-// (and therefore which species) owns the specific mesh instance under the
-// crosshair.
+// Searches one container's spawner components for the partition that tracks
+// this exact ISM component. Returns the owning spawner, or null.
+static SDK::UBiomesRuntimeSpawnerComponent* FindSpawnerTrackingComponent(
+	SDK::ABiomesRuntimeSpawnerContainer* container, SDK::UPrimitiveComponent* hitComponent)
+{
+	for (int s = 0; s < container->SpawnerComponents.Num(); s++)
+	{
+		SDK::UBiomesRuntimeSpawnerComponent* spawner = container->SpawnerComponents[s];
+		if (!spawner || !spawner->SpeciesInfo)
+			continue;
+
+		for (int p = 0; p < spawner->InstanceComponentPartitions.Num(); p++)
+		{
+			auto& partition = spawner->InstanceComponentPartitions[p];
+			for (int i = 0; i < partition.RuntimeInstanceComponents.Num(); i++)
+				if (partition.RuntimeInstanceComponents[i] == hitComponent)
+					return spawner;
+		}
+	}
+	return nullptr;
+}
+
+// The runtime ISM components are NOT owned by the spawner container that
+// manages them -- they're attached to a plain BiomesPartitionActor (the
+// per-grid-cell render partition), so the hit actor's class tells us nothing.
+// Walk the live containers and find whichever spawner tracks this component.
+// ObjectWalker is expensive, but this only runs on an explicit keypress.
+static SDK::UBiomesRuntimeSpawnerComponent* FindSpawnerForComponentGlobal(SDK::UPrimitiveComponent* hitComponent)
+{
+	auto* hooks = GetHooks();
+	if (!hooks || !hooks->ObjectWalker || !hooks->ObjectWalker->IsReady())
+		return nullptr;
+
+	static PluginObjectInfo s_matches[512];
+	const int capacity = sizeof(s_matches) / sizeof(s_matches[0]);
+
+	int total = hooks->ObjectWalker->FindObjectsByClassNameInto(
+		"BiomesRuntimeSpawnerContainer", PluginObjectLookup_InstanceOnly, s_matches, capacity);
+
+	int found = total < capacity ? total : capacity;
+	for (int c = 0; c < found; c++)
+	{
+		auto* container = static_cast<SDK::ABiomesRuntimeSpawnerContainer*>(s_matches[c].object);
+		if (!container)
+			continue;
+
+		if (SDK::UBiomesRuntimeSpawnerComponent* spawner = FindSpawnerTrackingComponent(container, hitComponent))
+			return spawner;
+	}
+	return nullptr;
+}
+
+// Fired by the inspect keybind. Traces from the player's eyes and identifies
+// which spawner component (and therefore which species) tracks the specific
+// mesh instance under the crosshair.
 static void OnInspectKeybindPressed(EModKey /*key*/, EModKeyEvent /*event*/)
 {
 	using namespace SDK;
@@ -328,41 +379,27 @@ static void OnInspectKeybindPressed(EModKey /*key*/, EModKeyEvent /*event*/)
 		return;
 	}
 
-	if (!hitActor->IsA(ABiomesRuntimeSpawnerContainer::StaticClass()))
+	// Fast path: if the owner happens to be a container, search it directly.
+	if (hitActor->IsA(ABiomesRuntimeSpawnerContainer::StaticClass()))
 	{
-		// Not every decoration is species-tracked -- some are plain instanced
-		// mesh components sitting directly on a base BiomesPartitionActor
-		// (or some other actor entirely), with no UBiomesRuntimeSpawnerComponent
-		// / SpeciesInfo behind them. Report what we can instead of bailing.
-		DescribeUnmanagedComponent(hitActor, hitComponent);
-		return;
-	}
-
-	auto* container = static_cast<ABiomesRuntimeSpawnerContainer*>(hitActor);
-
-	for (int s = 0; s < container->SpawnerComponents.Num(); s++)
-	{
-		UBiomesRuntimeSpawnerComponent* spawner = container->SpawnerComponents[s];
-		if (!spawner || !spawner->SpeciesInfo)
-			continue;
-
-		for (int p = 0; p < spawner->InstanceComponentPartitions.Num(); p++)
+		auto* container = static_cast<ABiomesRuntimeSpawnerContainer*>(hitActor);
+		if (UBiomesRuntimeSpawnerComponent* spawner = FindSpawnerTrackingComponent(container, hitComponent))
 		{
-			auto& partition = spawner->InstanceComponentPartitions[p];
-			for (int i = 0; i < partition.RuntimeInstanceComponents.Num(); i++)
-			{
-				if (partition.RuntimeInstanceComponents[i] != hitComponent)
-					continue;
-
-				ReportSpeciesFilterState(spawner->SpeciesInfo->GetName());
-				return;
-			}
+			ReportSpeciesFilterState(spawner->SpeciesInfo->GetName());
+			return;
 		}
 	}
 
-	// Container hit, but this exact component isn't one of its tracked
-	// species instances (e.g. a component on the container that isn't part
-	// of any SpawnerComponents partition). Fall back to raw identification.
+	// Normal case: the ISM's owner is a BiomesPartitionActor render cell, not
+	// the container that manages it. Search all live containers for whichever
+	// spawner tracks this exact component.
+	if (UBiomesRuntimeSpawnerComponent* spawner = FindSpawnerForComponentGlobal(hitComponent))
+	{
+		ReportSpeciesFilterState(spawner->SpeciesInfo->GetName());
+		return;
+	}
+
+	// Genuinely not tracked by any spawner component -- report what we can.
 	DescribeUnmanagedComponent(hitActor, hitComponent);
 }
 
