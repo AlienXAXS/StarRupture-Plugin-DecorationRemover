@@ -1,0 +1,54 @@
+<?xml version="1.0" encoding="utf-8"?>
+<Project ToolsVersion="4.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  <ItemGroup>
+    <Filter Include="Plugin">
+      <UniqueIdentifier>{F1A2B3C4-D5E6-4F7A-8B9C-0D1E2F3A4B5C}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Core">
+      <UniqueIdentifier>{A2B3C4D5-E6F7-4A8B-9C0D-1E2F3A4B5C6D}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Handlers">
+      <UniqueIdentifier>{B3C4D5E6-F7A8-4B9C-0D1E-2F3A4B5C6D7E}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="UI">
+      <UniqueIdentifier>{C4D5E6F7-A8B9-4C0D-1E2F-3A4B5C6D7E8F}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Config">
+      <UniqueIdentifier>{D5E6F7A8-B9C0-4D1E-2F3A-4B5C6D7E8F9A}</UniqueIdentifier>
+    </Filter>
+  </ItemGroup>
+  <ItemGroup>
+    <ClInclude Include="..\include\plugin_interface.h">
+      <Filter>Plugin</Filter>
+    </ClInclude>
+    <ClInclude Include="plugin_helpers.h">
+      <Filter>Plugin</Filter>
+    </ClInclude>
+    <ClInclude Include="plugin_config.h">
+      <Filter>Config</Filter>
+    </ClInclude>
+    <ClInclude Include="plugin.h">
+      <Filter>Core</Filter>
+    </ClInclude>
+  </ItemGroup>
+  <ItemGroup>
+    <ClCompile Include="dllmain.cpp">
+      <Filter>Plugin</Filter>
+    </ClCompile>
+    <ClCompile Include="$(StarRuptureSDKSourceDir)Basic.cpp">
+      <Filter>Plugin</Filter>
+    </ClCompile>
+    <ClCompile Include="$(StarRuptureSDKSourceDir)CoreUObject_functions.cpp">
+      <Filter>Plugin</Filter>
+    </ClCompile>
+    <ClCompile Include="$(StarRuptureSDKSourceDir)Engine_functions.cpp">
+      <Filter>Plugin</Filter>
+    </ClCompile>
+    <ClCompile Include="plugin_config.cpp">
+      <Filter>Config</Filter>
+    </ClCompile>
+    <ClCompile Include="plugin.cpp">
+      <Filter>Core</Filter>
+    </ClCompile>
+  </ItemGroup>
+</Project>
