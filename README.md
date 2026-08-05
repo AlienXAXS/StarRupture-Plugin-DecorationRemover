@@ -1,5 +1,8 @@
 # StarRupture-Plugin-DecorationRemover
 
+Note:
+This plugin doesnt work as expected, just leaving it here for future reference in case any of its code and lookups become useful
+
 A world decoration remover plugin for the [StarRupture ModLoader](https://github.com/AlienXAXS) targeting the Chimera (UE5) game. It removes all decorations around the world — rocks, trees, and other environmental clutter — giving you a clean, unobstructed building space.
 
 ## Features
