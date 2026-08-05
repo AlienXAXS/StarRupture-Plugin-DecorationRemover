@@ -81,6 +81,27 @@ namespace DecorationRemoverConfig
 			ConfigValueType::String,
 			"",
 			"Extra comma-separated, case-insensitive species-name substrings to remove (for species not covered by the toggles)"
+		},
+		{
+			"Debug",
+			"EntityDump",
+			ConfigValueType::Boolean,
+			"false",
+			"Enable the F9 entity dump: writes a JSON snapshot of every Mass and biomes entity the plugin can reach to Plugins\\EntityDumps\\.  Debug tool -- the dump hitches the game while it runs."
+		},
+		{
+			"Debug",
+			"EntityDumpRadius",
+			ConfigValueType::Integer,
+			"0",
+			"Only dump entities within this many world units of the player (100 units = 1 metre).  0 dumps the whole world, which can produce a very large file."
+		},
+		{
+			"Debug",
+			"EntityDumpInstances",
+			ConfigValueType::Boolean,
+			"true",
+			"Include per-instance coordinates in the dump.  Turn off for a much smaller file listing components and instance counts only."
 		}
 	};
 
@@ -114,6 +135,23 @@ namespace DecorationRemoverConfig
 		{
 			bool def = group.defaultValue[0] == 't';
 			return s_self ? s_self->config->ReadBool(s_self, "Removal", group.key, def) : def;
+		}
+
+		static bool IsEntityDumpEnabled()
+		{
+			return s_self ? s_self->config->ReadBool(s_self, "Debug", "EntityDump", false) : false;
+		}
+
+		// World units around the player; 0 = no distance filter.
+		static int GetEntityDumpRadius()
+		{
+			int radius = s_self ? s_self->config->ReadInt(s_self, "Debug", "EntityDumpRadius", 0) : 0;
+			return radius > 0 ? radius : 0;
+		}
+
+		static bool ShouldDumpInstances()
+		{
+			return s_self ? s_self->config->ReadBool(s_self, "Debug", "EntityDumpInstances", true) : true;
 		}
 
 		static const char* GetCustomFilters()

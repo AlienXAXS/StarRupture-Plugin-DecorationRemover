@@ -52,6 +52,31 @@ On first run, `DecorationRemover.ini` is generated in `<game_dir>/Plugins/config
 | Section | Key | Default | Description |
 |---|---|---|---|
 | `General` | `Enabled` | `true` | Enable or disable the plugin entirely |
+| `Debug` | `EntityDump` | `false` | Enable the F9 entity dump (see below) |
+| `Debug` | `EntityDumpRadius` | `0` | Only dump entities within this many world units of the player (100 units = 1 m). `0` dumps the whole world |
+| `Debug` | `EntityDumpInstances` | `true` | Include per-instance coordinates. Turn off for a much smaller file with components and counts only |
+
+## Debug entity dump
+
+With `[Debug] EntityDump` enabled, **F9** writes a pretty-printed JSON snapshot of the world to
+`Plugins/EntityDumps/EntityDump_<timestamp>.json`. It is read-only — nothing in the world is modified — but a
+whole-world walk hitches the game for a moment and can produce a very large file, so set `EntityDumpRadius`
+when you only care about what is around you.
+
+Sections in the dump:
+
+| Section | Contents |
+|---|---|
+| `massVisualization` | Every `UMassVisualizationComponent`: its authored mesh descriptions and its live ISM components, with mesh name, instance count, and per-instance world coordinates |
+| `massAgentActors` | Actors carrying a `UMassAgentComponent` — actor name, class, and world location |
+| `massPersistentEntities` | The `CrMassPersistentIDSubsystem` roster: every persistent Mass entity handle (index, serial number) and its stable ID |
+| `biomesContainers` / `biomesStandaloneSpawners` | The biomes decoration system: species names, mesh assets, spawn distances, instance components and coordinates, plus whether the current filters would remove each species |
+| `summary` | Per-section counts, plus whether the instance rows were capped |
+
+Note on coverage: a plugin cannot reach `FMassEntityManager`, the archetype/chunk storage that actually owns each
+Mass entity's fragments, so there is no path to per-entity `FTransformFragment`s. Entity *positions* in the dump
+therefore come from the other end of the pipeline — the visualisation ISM instances that each rendered entity
+produces — and the persistent-ID registry supplies the handle roster.
 
 ## Key Files
 
@@ -60,6 +85,7 @@ On first run, `DecorationRemover.ini` is generated in `<game_dir>/Plugins/config
 | [`plugin.cpp`](DecorationRemover/plugin.cpp) | `GetPluginInfo` / `PluginInit` / `PluginShutdown` C exports |
 | [`plugin_config.h`](DecorationRemover/plugin_config.h) | Schema-based `DecorationRemover.ini` config with typed accessors |
 | [`plugin_helpers.h`](DecorationRemover/plugin_helpers.h) | Logging macros and helper functions |
+| [`entity_dump.cpp`](DecorationRemover/entity_dump.cpp) | Debug-only JSON world/entity dump (F9) |
 | [`dllmain.cpp`](DecorationRemover/dllmain.cpp) | Standard Windows DLL entry point |
 
 ## License

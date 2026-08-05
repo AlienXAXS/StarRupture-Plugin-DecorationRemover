@@ -30,6 +30,9 @@
     <ClInclude Include="plugin.h">
       <Filter>Core</Filter>
     </ClInclude>
+    <ClInclude Include="entity_dump.h">
+      <Filter>Handlers</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="dllmain.cpp">
@@ -49,6 +52,9 @@
     </ClCompile>
     <ClCompile Include="plugin.cpp">
       <Filter>Core</Filter>
+    </ClCompile>
+    <ClCompile Include="entity_dump.cpp">
+      <Filter>Handlers</Filter>
     </ClCompile>
   </ItemGroup>
 </Project>
