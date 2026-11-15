@@ -13,13 +13,27 @@ A world decoration remover plugin for the [StarRupture ModLoader](https://github
 ## Requirements
 
 - Visual Studio 2022 (MSVC v143, C++20)
-- [StarRupture-Game-SDK](https://github.com/AlienXAXS/StarRupture-Game-SDK)
 - [StarRupture-Plugin-SDK](https://github.com/AlienXAXS/StarRupture-Plugin-SDK)
 - StarRupture with ModLoader installed
 
 ## Building
 
-Open `StarRupture-Plugin-DecorationRemover.sln` in Visual Studio 2022 and build, or use MSBuild from the repository root:
+Put the plugin next to `StarRupture-Plugin-SDK` and clone both with `--recursive`, so the game SDK submodules come along:
+
+```
+git clone --recursive https://github.com/AlienXAXS/StarRupture-Plugin-SDK.git
+git clone --recursive https://github.com/AlienXAXS/StarRupture-Plugin-DecorationRemover.git
+```
+
+```
+<parent folder>/
+├── StarRupture-Plugin-SDK/
+└── StarRupture-Plugin-DecorationRemover/
+```
+
+The game SDK comes from this plugin's own `StarRupture SDK` submodule when it has one, otherwise from the Plugin SDK's. To build against other folders, pass `/p:PluginSDKInclude=...` and `/p:GameSDKRoot=...` to msbuild.
+
+Then open `StarRupture-Plugin-DecorationRemover.sln` in Visual Studio 2022 and build, or use MSBuild from the repository root:
 
 ```bat
 msbuild StarRupture-Plugin-DecorationRemover.sln /p:Configuration="Client Debug" /p:Platform=x64
@@ -37,8 +51,6 @@ Output is placed at `build/<Configuration>/Plugins/DecorationRemover.dll`.
 | `Server Release` | Optimised server-side build |
 | `Local SDK Client Debug/Release` | Client build using a local SDK checkout |
 | `Local SDK Server Debug/Release` | Server build using a local SDK checkout |
-
-SDK checkout paths can be adjusted in [`Shared.props`](Shared.props) to match your local directory layout.
 
 ## Installation
 
